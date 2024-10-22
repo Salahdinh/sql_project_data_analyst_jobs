@@ -13,22 +13,21 @@ The analysis utilizes SQL queries to derive insights, helping job seekers unders
 
 ---
 
-## 1. Database Setup
-
-### Step 1: Create Database
-
+#### 1. **Database Creation**
+The database is created using the following command:
 ```sql
 CREATE DATABASE sql_project;
 ```
 
-### Step 2: Create Tables
+---
 
-The following tables were created to store data related to job postings, companies, and required skills:
+#### 2. **Table Structure and Schema**
 
-#### 2.1. `company_dim` Table
-
+##### 2.1. `company_dim` - Company Information
+Stores information about companies associated with job postings.
 ```sql
-CREATE TABLE public.company_dim (
+CREATE TABLE public.company_dim
+(
     company_id INT PRIMARY KEY,
     name TEXT,
     link TEXT,
@@ -36,21 +35,25 @@ CREATE TABLE public.company_dim (
     thumbnail TEXT
 );
 ```
+- **Primary Key:** `company_id`
 
-#### 2.2. `skills_dim` Table
-
+##### 2.2. `skills_dim` - Skills Information
+Contains information on skills required for job positions.
 ```sql
-CREATE TABLE public.skills_dim (
+CREATE TABLE public.skills_dim
+(
     skill_id INT PRIMARY KEY,
     skills TEXT,
     type TEXT
 );
 ```
+- **Primary Key:** `skill_id`
 
-#### 2.3. `job_postings_fact` Table
-
+##### 2.3. `job_postings_fact` - Job Postings Data
+Fact table storing detailed information on job postings.
 ```sql
-CREATE TABLE public.job_postings_fact (
+CREATE TABLE public.job_postings_fact
+(
     job_id INT PRIMARY KEY,
     company_id INT,
     job_title_short VARCHAR(255),
@@ -70,11 +73,14 @@ CREATE TABLE public.job_postings_fact (
     FOREIGN KEY (company_id) REFERENCES public.company_dim (company_id)
 );
 ```
+- **Primary Key:** `job_id`
+- **Foreign Key:** `company_id` references `company_dim.company_id`
 
-#### 2.4. `skills_job_dim` Table
-
+##### 2.4. `skills_job_dim` - Job-Skills Relationship
+Associative table linking job postings to required skills.
 ```sql
-CREATE TABLE public.skills_job_dim (
+CREATE TABLE public.skills_job_dim
+(
     job_id INT,
     skill_id INT,
     PRIMARY KEY (job_id, skill_id),
@@ -82,17 +88,17 @@ CREATE TABLE public.skills_job_dim (
     FOREIGN KEY (skill_id) REFERENCES public.skills_dim (skill_id)
 );
 ```
+- **Composite Primary Key:** `(job_id, skill_id)`
+- **Foreign Keys:** `job_id`, `skill_id` reference `job_postings_fact` and `skills_dim`
 
-### Step 3: Indexes and Table Ownership
-
+#### 3. **Table Ownership and Indexing**
+To improve performance and maintain proper permissions:
 ```sql
--- Set ownership of the tables to the postgres user
 ALTER TABLE public.company_dim OWNER TO postgres;
 ALTER TABLE public.skills_dim OWNER TO postgres;
 ALTER TABLE public.job_postings_fact OWNER TO postgres;
 ALTER TABLE public.skills_job_dim OWNER TO postgres;
 
--- Create indexes on foreign key columns for better performance
 CREATE INDEX idx_company_id ON public.job_postings_fact (company_id);
 CREATE INDEX idx_skill_id ON public.skills_job_dim (skill_id);
 CREATE INDEX idx_job_id ON public.skills_job_dim (job_id);
@@ -100,40 +106,23 @@ CREATE INDEX idx_job_id ON public.skills_job_dim (job_id);
 
 ---
 
-## 2. Data Import
-
-Data was imported from CSV files into the database using the following commands:
-
+#### 4. **Data Loading Instructions**
+To load data from CSV files, use the `COPY` command in PostgreSQL:
 ```sql
-COPY company_dim
-FROM 'C:\\Program Files\\PostgreSQL\\16\\data\\Datasets\\sql_course\\company_dim.csv'
-WITH (FORMAT csv, HEADER true, DELIMITER ',', ENCODING 'UTF8');
-
-COPY skills_dim
-FROM 'C:\\Program Files\\PostgreSQL\\16\\data\\Datasets\\sql_course\\skills_dim.csv'
-WITH (FORMAT csv, HEADER true, DELIMITER ',', ENCODING 'UTF8');
-
-COPY job_postings_fact
-FROM 'C:\\Program Files\\PostgreSQL\\16\\data\\Datasets\\sql_course\\job_postings_fact.csv'
-WITH (FORMAT csv, HEADER true, DELIMITER ',', ENCODING 'UTF8');
-
-COPY skills_job_dim
-FROM 'C:\\Program Files\\PostgreSQL\\16\\data\\Datasets\\sql_course\\skills_job_dim.csv'
-WITH (FORMAT csv, HEADER true, DELIMITER ',', ENCODING 'UTF8');
+\copy company_dim FROM '[File Path]/company_dim.csv' WITH (FORMAT csv, HEADER true, DELIMITER ',', ENCODING 'UTF8');
+\copy skills_dim FROM '[File Path]/skills_dim.csv' WITH (FORMAT csv, HEADER true, DELIMITER ',', ENCODING 'UTF8');
+\copy job_postings_fact FROM '[File Path]/job_postings_fact.csv' WITH (FORMAT csv, HEADER true, DELIMITER ',', ENCODING 'UTF8');
+\copy skills_job_dim FROM '[File Path]/skills_job_dim.csv' WITH (FORMAT csv, HEADER true, DELIMITER ',', ENCODING 'UTF8');
 ```
 
 ---
 
-## 3. Data Analysis
+#### 5. **Query Examples**
 
-### 3.1. Top-Paying Data Analyst Jobs
-
-**Question:** What are the top-paying data analyst jobs?
-
-**Objective:** Identify the top 10 highest-paying remote Data Analyst roles with specified salaries.
-
+##### 5.1. Top-Paying Remote Data Analyst Jobs
+Retrieve details of the highest-paying remote data analyst positions:
 ```sql
-SELECT
+SELECT	
     job_id,
     job_title,
     job_location,
@@ -141,60 +130,68 @@ SELECT
     salary_year_avg,
     job_posted_date,
     name AS company_name
-FROM job_postings_fact
+FROM
+    job_postings_fact
 LEFT JOIN company_dim ON job_postings_fact.company_id = company_dim.company_id
-WHERE job_title_short = 'Data Analyst'
-  AND job_location = 'Anywhere'
-  AND salary_year_avg IS NOT NULL
-ORDER BY salary_year_avg DESC
+WHERE
+    job_title_short = 'Data Analyst' AND 
+    job_location = 'Anywhere' AND 
+    salary_year_avg IS NOT NULL
+ORDER BY
+    salary_year_avg DESC
 LIMIT 10;
 ```
 
-**Key Findings:**
-- Top salaries range from $184,000 to $650,000.
-- Employers like Meta, AT&T, and SmartAsset offer some of the highest-paying positions.
-- A variety of roles, including "Data Analyst" and "Director of Analytics," are represented.
+##### ** Results**
+| job_id  | job_title                               | job_location | job_schedule_type | salary_year_avg | job_posted_date     | company_name                              |
+|---------|----------------------------------------|--------------|-------------------|-----------------|---------------------|-------------------------------------------|
+| 226942  | Data Analyst                           | Anywhere     | Full-time         | 650,000.0       | 2023-02-20 15:13:33 | Mantys                                    |
+| 547382  | Director of Analytics                  | Anywhere     | Full-time         | 336,500.0       | 2023-08-23 12:04:42 | Meta                                      |
+| 552322  | Associate Director- Data Insights      | Anywhere     | Full-time         | 255,829.5       | 2023-06-18 16:03:12 | AT&T                                      |
+| 99305   | Data Analyst, Marketing                | Anywhere     | Full-time         | 232,423.0       | 2023-12-05 20:00:40 | Pinterest Job Advertisements              |
+| 1021647 | Data Analyst (Hybrid/Remote)           | Anywhere     | Full-time         | 217,000.0       | 2023-01-17 00:17:23 | Uclahealthcareers                         |
 
-### 3.2. Skills for Top-Paying Jobs
 
-**Question:** What skills are required for the top-paying data analyst jobs?
-
-**Objective:** Identify the skills associated with the highest-paying remote Data Analyst roles.
-
+##### 5.2. Skills for Top-Paying Remote Data Analyst Jobs
+Identify the skills required for the highest-paying remote data analyst roles:
 ```sql
 WITH top_paying_jobs AS (
-    SELECT
+    SELECT	
         job_id,
         job_title,
         salary_year_avg,
         name AS company_name
-    FROM job_postings_fact
+    FROM
+        job_postings_fact
     LEFT JOIN company_dim ON job_postings_fact.company_id = company_dim.company_id
-    WHERE job_title_short = 'Data Analyst'
-      AND job_location = 'Anywhere'
-      AND salary_year_avg IS NOT NULL
-    ORDER BY salary_year_avg DESC
+    WHERE
+        job_title_short = 'Data Analyst' AND 
+        job_location = 'Anywhere' AND 
+        salary_year_avg IS NOT NULL
+    ORDER BY
+        salary_year_avg DESC
     LIMIT 10
 )
+
 SELECT 
     top_paying_jobs.*,
     skills
 FROM top_paying_jobs
 INNER JOIN skills_job_dim ON top_paying_jobs.job_id = skills_job_dim.job_id
 INNER JOIN skills_dim ON skills_job_dim.skill_id = skills_dim.skill_id
-ORDER BY salary_year_avg DESC;
+ORDER BY
+    salary_year_avg DESC;
 ```
 
-**Key Findings:**
-- Skills like SQL, Python, and Tableau are prominent among high-paying roles.
-- Other valuable skills include R, Azure, Databricks, AWS, and Excel.
+##### **Results**
+The most demanded skills for the top 10 highest paying data analyst jobs in 2023:
+SQL tops the list with a strong demand count of 8.
+Python is close behind with a count of 7. 
+Tableau is also in high demand, with a count of 6. 
+Other skills such as R, Snowflake, Pandas, and Excel exhibit varying levels of popularity.
 
-### 3.3. Most In-Demand Skills
-
-**Question:** What are the most in-demand skills for data analysts?
-
-**Objective:** Identify the top 5 skills most frequently listed in job postings for data analysts.
-
+##### 5.3. Most In-Demand Skills for Remote Data Analysts
+List the most sought-after skills for remote data analysts:
 ```sql
 SELECT 
     skills,
@@ -202,21 +199,28 @@ SELECT
 FROM job_postings_fact
 INNER JOIN skills_job_dim ON job_postings_fact.job_id = skills_job_dim.job_id
 INNER JOIN skills_dim ON skills_job_dim.skill_id = skills_dim.skill_id
-WHERE job_title_short = 'Data Analyst'
-  AND job_work_from_home = True
-GROUP BY skills
-ORDER BY demand_count DESC
+WHERE
+    job_title_short = 'Data Analyst' 
+    AND job_work_from_home = True 
+GROUP BY
+    skills
+ORDER BY
+    demand_count DESC
 LIMIT 5;
 ```
 
-**Key Findings:**
-- **SQL** is the most demanded skill, followed by **Excel**, **Python**, **Tableau**, and **Power BI**.
-- The prominence of SQL and Excel emphasizes the importance of foundational data processing and analysis skills.
-- Programming and visualization tools are critical for data storytelling and effective decision-making.
+##### **Results**
+| skills  | demand_count |
+|---------|--------------|
+| sql     | 7291         |
+| excel   | 4611         |
+| python  | 4330         |
+| tableau | 3745         |
+| power bi| 2609         |
 
 ---
 
-## 4. Conclusion
+## 6. Conclusion
 
 This project provided valuable insights into the data analyst job market by leveraging SQL to extract and analyze data from job postings. Key takeaways include:
 
