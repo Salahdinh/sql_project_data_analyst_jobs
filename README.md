@@ -2,7 +2,7 @@
 
 ## Project Overview
 
-This project explores the data analyst job market, focusing on:
+In this project, I explore the data analyst job market, focusing on:
 
 - Setting up a database to store and query job postings
 - Analyzing top-paying data analyst positions
@@ -14,7 +14,7 @@ The analysis utilizes SQL queries to derive insights, helping job seekers unders
 ---
 
 #### 1. **Database Creation**
-The database is created using the following command:
+I created the database using the following command:
 ```sql
 CREATE DATABASE sql_project;
 ```
@@ -24,7 +24,7 @@ CREATE DATABASE sql_project;
 #### 2. **Table Structure and Schema**
 
 ##### 2.1. `company_dim` - Company Information
-Stores information about companies associated with job postings.
+This table stores information about companies associated with job postings.
 ```sql
 CREATE TABLE public.company_dim
 (
@@ -38,7 +38,7 @@ CREATE TABLE public.company_dim
 - **Primary Key:** `company_id`
 
 ##### 2.2. `skills_dim` - Skills Information
-Contains information on skills required for job positions.
+This table contains information on skills required for job positions.
 ```sql
 CREATE TABLE public.skills_dim
 (
@@ -50,7 +50,7 @@ CREATE TABLE public.skills_dim
 - **Primary Key:** `skill_id`
 
 ##### 2.3. `job_postings_fact` - Job Postings Data
-Fact table storing detailed information on job postings.
+This fact table stores detailed information on job postings.
 ```sql
 CREATE TABLE public.job_postings_fact
 (
@@ -77,7 +77,7 @@ CREATE TABLE public.job_postings_fact
 - **Foreign Key:** `company_id` references `company_dim.company_id`
 
 ##### 2.4. `skills_job_dim` - Job-Skills Relationship
-Associative table linking job postings to required skills.
+This associative table links job postings to required skills.
 ```sql
 CREATE TABLE public.skills_job_dim
 (
@@ -92,7 +92,7 @@ CREATE TABLE public.skills_job_dim
 - **Foreign Keys:** `job_id`, `skill_id` reference `job_postings_fact` and `skills_dim`
 
 #### 3. **Table Ownership and Indexing**
-To improve performance and maintain proper permissions:
+To improve performance and maintain proper permissions, I executed:
 ```sql
 ALTER TABLE public.company_dim OWNER TO postgres;
 ALTER TABLE public.skills_dim OWNER TO postgres;
@@ -107,7 +107,7 @@ CREATE INDEX idx_job_id ON public.skills_job_dim (job_id);
 ---
 
 #### 4. **Data Loading Instructions**
-To load data from CSV files, use the `COPY` command in PostgreSQL:
+To load data from CSV files, I used the `COPY` command in PostgreSQL:
 ```sql
 \copy company_dim FROM '[File Path]/company_dim.csv' WITH (FORMAT csv, HEADER true, DELIMITER ',', ENCODING 'UTF8');
 \copy skills_dim FROM '[File Path]/skills_dim.csv' WITH (FORMAT csv, HEADER true, DELIMITER ',', ENCODING 'UTF8');
@@ -120,7 +120,7 @@ To load data from CSV files, use the `COPY` command in PostgreSQL:
 #### 5. **Query Examples**
 
 ##### 5.1. Top-Paying Remote Data Analyst Jobs
-Retrieve details of the highest-paying remote data analyst positions:
+To retrieve details of the highest-paying remote data analyst positions, I ran:
 ```sql
 SELECT	
     job_id,
@@ -142,18 +142,17 @@ ORDER BY
 LIMIT 10;
 ```
 
-##### ** Results**
+##### **Results**
 | job_id  | job_title                               | job_location | job_schedule_type | salary_year_avg | job_posted_date     | company_name                              |
 |---------|----------------------------------------|--------------|-------------------|-----------------|---------------------|-------------------------------------------|
 | 226942  | Data Analyst                           | Anywhere     | Full-time         | 650,000.0       | 2023-02-20 15:13:33 | Mantys                                    |
 | 547382  | Director of Analytics                  | Anywhere     | Full-time         | 336,500.0       | 2023-08-23 12:04:42 | Meta                                      |
 | 552322  | Associate Director- Data Insights      | Anywhere     | Full-time         | 255,829.5       | 2023-06-18 16:03:12 | AT&T                                      |
 | 99305   | Data Analyst, Marketing                | Anywhere     | Full-time         | 232,423.0       | 2023-12-05 20:00:40 | Pinterest Job Advertisements              |
-| 1021647 | Data Analyst (Hybrid/Remote)           | Anywhere     | Full-time         | 217,000.0       | 2023-01-17 00:17:23 | Uclahealthcareers                         |
-
+| 1021647 | Data Analyst (Hybrid/Remote)          | Anywhere     | Full-time         | 217,000.0       | 2023-01-17 00:17:23 | Uclahealthcareers                         |
 
 ##### 5.2. Skills for Top-Paying Remote Data Analyst Jobs
-Identify the skills required for the highest-paying remote data analyst roles:
+To identify the skills required for the highest-paying remote data analyst roles, I executed:
 ```sql
 WITH top_paying_jobs AS (
     SELECT	
@@ -184,14 +183,14 @@ ORDER BY
 ```
 
 ##### **Results**
-The most demanded skills for the top 10 highest paying data analyst jobs in 2023:
-SQL tops the list with a strong demand count of 8.
-Python is close behind with a count of 7. 
-Tableau is also in high demand, with a count of 6. 
-Other skills such as R, Snowflake, Pandas, and Excel exhibit varying levels of popularity.
+The most demanded skills for the top 10 highest paying data analyst jobs in 2023 included:
+- SQL (high demand)
+- Python (close behind)
+- Tableau (also in high demand)
+- Other notable skills: R, Snowflake, Pandas, and Excel.
 
 ##### 5.3. Most In-Demand Skills for Remote Data Analysts
-List the most sought-after skills for remote data analysts:
+To list the most sought-after skills for remote data analysts, I performed:
 ```sql
 SELECT 
     skills,
@@ -229,4 +228,3 @@ This project provided valuable insights into the data analyst job market by leve
 - **Skill Demand**: Foundational skills like SQL and Excel remain crucial, while programming and data visualization tools are increasingly sought after.
 
 For aspiring data analysts, focusing on developing these key skills can improve job prospects and open doors to high-paying, remote opportunities. Continuous learning and skill enhancement are essential for staying competitive in this field.
-```
